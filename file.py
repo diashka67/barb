@@ -1,10 +1,15 @@
-"""python -m uvicorn file:app --reload"""
+#уралвагонзовод  концерн калашникова
+
+
+
 import csv
 import hashlib
 import logging
 import os
 import re
 import secrets
+import datetime
+import uvicorn
 
 from fastapi import FastAPI, Form, Request
 from fastapi.templating import Jinja2Templates
@@ -14,13 +19,19 @@ from fastapi.exception_handlers import http_exception_handler
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
-# ===== Настройки =====
-USERS_FILE = 'user.csv'        # «база данных»
-SECRET_FILE = '.secret_key'    # ключ, которым подписывается cookie с сессией
+from cryptography import x509
+from cryptography.x509.oid import NameOID
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+
+
+USERS_FILE = 'user.csv'        
+SECRET_FILE = '.secret_key'   
 MIN_PASSWORD, MAX_PASSWORD = 8, 64
 MIN_NAME, MAX_NAME = 2, 50
+CERT_FILE = "cert.pem"
+KEY_FILE = "key.pem"
 
-# Журнал: пишется и в консоль, и в файл sessions.log
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s | %(levelname)s | %(message)s',
@@ -29,8 +40,54 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+def generate_or_load_cert():
+    if os.path.exists(CERT_FILE) and os.path.exists(KEY_FILE):
+        return KEY_FILE, CERT_FILE
+
+    key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048,
+    )
+
+    subject = issuer = x509.Name([
+        x509.NameAttribute(NameOID.COUNTRY_NAME, "BY"),
+        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "Minsk"),
+        x509.NameAttribute(NameOID.LOCALITY_NAME, "Minsk"),
+        x509.NameAttribute(NameOID.ORGANIZATION_NAME, "FastAPI In-Memory"),
+        x509.NameAttribute(NameOID.COMMON_NAME, "localhost"),
+    ])
+
+    cert = (
+        x509.CertificateBuilder()
+        .subject_name(subject)
+        .issuer_name(issuer)
+        .public_key(key.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(datetime.datetime.now(datetime.timezone.utc))
+        .not_valid_after(datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=365))
+        .add_extension(
+            x509.SubjectAlternativeName([x509.DNSName("localhost"), x509.DNSName("10.100.0.2")]),
+            critical=False,
+        )
+        .sign(key, hashes.SHA256())
+    )
+
+    with open(KEY_FILE, "wb") as f:
+        f.write(
+            key.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.TraditionalOpenSSL,
+                encryption_algorithm=serialization.NoEncryption(),
+            )
+        )
+
+    with open(CERT_FILE, "wb") as f:
+        f.write(cert.public_bytes(serialization.Encoding.PEM))
+
+    return KEY_FILE, CERT_FILE
+
+
 def get_secret_key():
-    """Читает ключ из файла. Если файла нет — создаёт новый случайный ключ."""
     if os.path.exists(SECRET_FILE):
         with open(SECRET_FILE, encoding='utf-8') as f:
             key = f.read().strip()
@@ -43,14 +100,13 @@ def get_secret_key():
 
 
 app = FastAPI()
-# max_age=1500 — cookie живёт 25 минут
 app.add_middleware(SessionMiddleware, secret_key=get_secret_key(), max_age=1500, same_site='lax')
 app.mount('/static', StaticFiles(directory='static'), name='static')
 app.mount('/sources', StaticFiles(directory='sources'), name='sources')
 templates = Jinja2Templates(directory='templates')
 
 
-# ===== Пользователи (файл user.csv) =====
+#  Пользователи
 def read_users():
     if not os.path.exists(USERS_FILE):
         return []
@@ -74,7 +130,7 @@ def add_user(name, email, password):
         writer.writerow([name, email, hash_password(password)])
 
 
-# ===== Пароли =====
+#  Пароли 
 def make_hash(password, salt):
     return hashlib.sha256((salt + password).encode('utf-8')).hexdigest()
 
@@ -89,7 +145,7 @@ def check_password(password, saved):
     return saved == salt + '$' + make_hash(password, salt)
 
 
-# ===== Проверка данных регистрации (главная проверка — здесь, а не в JS) =====
+#  Проверка данных регистрации
 def check_name(name):
     if len(name) < MIN_NAME:
         return f'Введите имя (минимум {MIN_NAME} символа)'
@@ -113,9 +169,8 @@ def check_password_strength(password):
         return 'В пароле должна быть хотя бы одна цифра'
 
 
-# ===== Сессии =====
-# В cookie лежит случайный номер сессии (sid), а список действующих номеров — на сервере.
-# Убрали номер из списка — cookie перестаёт работать, даже если его кто-то скопировал.
+#  Сессии 
+
 active_sessions = set()
 
 
@@ -124,7 +179,7 @@ def client_ip(request):
 
 
 def start_session(request, email):
-    end_session(request)                         # старую сессию закрываем
+    end_session(request)                         
     sid = secrets.token_hex(16)
     active_sessions.add(sid)
     request.session['sid'] = sid
@@ -141,7 +196,6 @@ def end_session(request):
 
 
 def session_email(request):
-    """Почта вошедшего человека или None, если он не вошёл."""
     sid = request.session.get('sid')
     email = request.session.get('user_email')
     if email and sid in active_sessions:
@@ -152,12 +206,11 @@ def session_email(request):
 
 
 def get_user(request):
-    """Вошедший пользователь (словарь из файла) или None."""
     email = session_email(request)
     if email is None:
         return None
     user = find_user(email)
-    if user is None:                             # аккаунт удалили из файла
+    if user is None:                           
         end_session(request)
     return user
 
@@ -171,7 +224,7 @@ async def no_cache_for_pages(request: Request, call_next):
     return response
 
 
-# ===== Страницы =====
+# Страницы 
 @app.get('/', response_class=HTMLResponse)
 @app.get('/home', response_class=HTMLResponse)
 def home_page(request: Request):
@@ -210,7 +263,6 @@ def logout(request: Request):
     return RedirectResponse(url='/login', status_code=303)
 
 
-# Сюда обращается sources/back.js, когда человек нажал «Назад» в браузере
 @app.post('/back')
 def pressed_back(request: Request):
     email = session_email(request)
@@ -230,7 +282,6 @@ def forbidden_page(request: Request):
     return templates.TemplateResponse(request=request, name='403.html', status_code=403)
 
 
-# Для ошибок 403 и 404 показываем свои страницы, остальные ошибки — как обычно
 @app.exception_handler(StarletteHTTPException)
 async def error_pages(request: Request, exc: StarletteHTTPException):
     pages = {403: '403.html', 404: '404.html'}
@@ -239,7 +290,7 @@ async def error_pages(request: Request, exc: StarletteHTTPException):
     return await http_exception_handler(request, exc)
 
 
-# ===== Регистрация и вход =====
+# Регистрация и вход 
 @app.post('/register')
 def register(request: Request,
              name: str = Form(...),
@@ -256,7 +307,6 @@ def register(request: Request,
         error = 'Такой email уже зареган'
 
     if error:
-        # name и email возвращаем, чтобы их не вводили заново
         return templates.TemplateResponse(
             request=request, name='register.html',
             context={'error': error, 'name': name, 'email': email}, status_code=400)
@@ -277,3 +327,14 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
 
     start_session(request, user['email'])
     return RedirectResponse(url='/main', status_code=303)
+
+
+if __name__ == "__main__":
+    key_path, cert_path = generate_or_load_cert()
+    uvicorn.run(
+        "__main__:app",
+        host="10.100.0.2",
+        port=443,
+        ssl_keyfile=key_path,
+        ssl_certfile=cert_path,
+    )
