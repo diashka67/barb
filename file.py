@@ -1,6 +1,7 @@
 """python -m uvicorn file:app --reload"""
 import csv
 import hashlib
+import logging
 import os
 import re
 import secrets
@@ -13,11 +14,39 @@ from fastapi.exception_handlers import http_exception_handler
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
+
+#логер
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s | %(levelname)-8s | %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+    handlers=[
+        logging.FileHandler('sessions.log', encoding='utf-8'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
+
 app = FastAPI()
 
-SECRET_KEY = "change-me-to-something-long-and-random-12345"
-# max_age=None — cookie «до закрытия браузера»: закрыл браузер — сессия закончилась
-app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY, max_age=None, same_site='lax')
+SECRET_FILE = '.secret_key'
+
+
+def get_or_create_secret() -> str:
+    if os.path.exists(SECRET_FILE):
+        with open(SECRET_FILE, 'r', encoding='utf-8') as f:
+            key = f.read().strip()
+            if key:
+                return key
+    new_key = secrets.token_hex(32)
+    with open(SECRET_FILE, 'w', encoding='utf-8') as f:
+        f.write(new_key)
+    logger.info('Сгенерирован новый секретный ключ и сохранён в %s', SECRET_FILE)
+    return new_key
+
+
+SECRET_KEY = get_or_create_secret()
+app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY, max_age=1500, same_site='lax')
 
 app.mount('/static', StaticFiles(directory='static'), name='static')
 app.mount('/sources', StaticFiles(directory='sources'), name='sources')
@@ -38,7 +67,7 @@ MIN_NAME = 2
 MAX_NAME = 50
 
 
-# ===== Работа с файлом пользователей =====
+# Файлы
 def read_users():
     if not os.path.exists(File):
         return []
@@ -62,7 +91,7 @@ def find_user(email):
     return None
 
 
-# ===== Пароли =====
+# Пароли
 def make_hash(password, salt):
     return hashlib.sha256((salt + password).encode('utf-8')).hexdigest()
 
@@ -92,7 +121,6 @@ def check_email(email):
 
 
 def check_password_strength(password):
-    """Возвращает текст ошибки или None, если пароль достаточно сложный."""
     if len(password) < MIN_PASSWORD:
         return f'Пароль должен быть не короче {MIN_PASSWORD} символов'
     if len(password) > MAX_PASSWORD:
@@ -104,27 +132,33 @@ def check_password_strength(password):
     return None
 
 
-# ===== Сессии =====
+# Сессии
 active_sessions = set()
 
 
 def start_session(request: Request, email):
-    end_session(request)                      
+    end_session(request)
     sid = secrets.token_hex(16)
     active_sessions.add(sid)
     request.session['sid'] = sid
     request.session['user_email'] = email
+    logger.info('Сессия создана | email=%s | sid=%s...', email, sid[:8])
 
 
 def end_session(request: Request):
-    active_sessions.discard(request.session.get('sid'))
+    sid = request.session.get('sid')
+    email = request.session.get('user_email')
+    active_sessions.discard(sid)
     request.session.clear()
+    if email:
+        logger.info('Сессия завершена | email=%s | sid=%s', email, sid[:8] if sid else 'none')
 
 
 def session_email(request: Request):
-    """Почта вошедшего пользователя или None, если человек не вошёл."""
     sid = request.session.get('sid')
     email = request.session.get('user_email')
+    if sid and sid not in active_sessions and email:
+        logger.warning('Попытка использовать истекшую сессию | email=%s | sid=%s...', email, sid[:8])
     if sid in active_sessions and email:
         return email
     return None
@@ -133,10 +167,12 @@ def session_email(request: Request):
 def get_current_user(request: Request):
     email = session_email(request)
     if not email:
+        logger.warning('Отказано в доступе | причина=нет_сессии | ip=%s', request.client.host)
         raise StarletteHTTPException(status_code=403, detail='Доступ запрещён')
 
     user = find_user(email)
     if user is None:
+        logger.warning('Отказано в доступе | email=%s | причина=пользователь_удален', email)
         end_session(request)
         raise StarletteHTTPException(status_code=403, detail='Доступ запрещён')
 
@@ -152,7 +188,6 @@ def current_name(request: Request) -> str:
     return 'красотка'
 
 
-# Просим браузер не хранить HTML-страницы в кэше
 @app.middleware('http')
 async def no_cache_for_pages(request: Request, call_next):
     response = await call_next(request)
@@ -161,7 +196,7 @@ async def no_cache_for_pages(request: Request, call_next):
     return response
 
 
-# ===== Страницы =====
+# Страницы
 @app.get('/', response_class=HTMLResponse)
 def main_page(request: Request):
     return templates.TemplateResponse(
@@ -209,10 +244,14 @@ def logout(request: Request):
     end_session(request)
     return RedirectResponse(url='/login', status_code=303)
 
+
 @app.post('/back')
 def pressed_back(request: Request):
     was_logged_in = session_email(request) is not None
+    email = session_email(request)
     end_session(request)
+    if was_logged_in:
+        logger.info('Сессия закрыта по кнопке "Назад" | email=%s', email)
     return {'logged_out': was_logged_in}
 
 
@@ -244,7 +283,7 @@ async def custom_http_exception_handler(request: Request, exc: StarletteHTTPExce
     return await http_exception_handler(request, exc)
 
 
-# ===== Регистрация и вход =====
+# Регистрация и вход
 @app.post('/register')
 def register(request: Request,
             name: str = Form(...),
@@ -254,7 +293,6 @@ def register(request: Request,
     name = name.strip()
     email = email.strip().lower()
 
-    # Берём первую найденную ошибку
     error = (check_name(name)
             or check_email(email)
             or check_password_strength(password)
@@ -262,7 +300,6 @@ def register(request: Request,
             or ('Такой email уже зареган' if find_user(email) else None))
 
     if error:
-        # name и email возвращаем, чтобы не вводить их заново
         return templates.TemplateResponse(
             request=request, name='register.html',
             context={'error': error, 'name': name, 'email': email},
@@ -270,7 +307,7 @@ def register(request: Request,
         )
 
     add_user(name, email, password)
-    print('Новый пользователь:', email)
+    logger.info('Новый пользователь зарегистрирован | email=%s | name=%s', email, name)
     return RedirectResponse(url='/login?registered=1', status_code=303)
 
 
@@ -281,11 +318,12 @@ def login(request: Request,
     user = find_user(username.strip().lower())
 
     if user is None or not check_password(password, user['password']):
+        logger.warning('Неудачная попытка входа | email=%s | ip=%s', username, request.client.host)
         return templates.TemplateResponse(
             request=request, name='login.html',
             context={'error': 'Неверный email или пароль'}
         )
 
-    print('Вошёл пользователь:', user['email'])
+    logger.info('Успешный вход | email=%s', user['email'])
     start_session(request, user['email'])
     return RedirectResponse(url='/main', status_code=303)
