@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Главная — БарбиЛенд</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Pacifico&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/home.css">
+  <link rel="stylesheet" href="/static/barbie.css">
+  <script src="/sources/back.js"></script>
+</head>
+<body>
+  <header class="header">
+    <div class="logo">💖 БарбиЛенд</div>
+    <nav class="nav">
+      <a href="/home" class="active">Главная</a>
+      <a href="/main">Личный кабинет</a>
+      <a href="/login">Вход</a>
+      <a href="/register">Регистрация</a>
+    </nav>
+  </header>
+
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-track">
+      💖 Привет, {{username}}! &nbsp; ✨ Сегодня отличный день, чтобы быть розовой &nbsp; 💅 Всё получится &nbsp; 🎀 Ты — звезда &nbsp; 👑 Привет, красотка! &nbsp; ✨ Сегодня отличный день, чтобы быть розовой &nbsp; 💅 Всё получится &nbsp; 🎀 Ты — звезда &nbsp;
+    </div>
+  </div>
+
+  <main class="main">
+    <section class="hero">
+      <p class="hero-tag">🏡 Всё розовое и только для тебя</p>
+      <h1 id="greeting">Добро пожаловать в <span>БарбиЛенд</span>!</h1>
+      <p>
+        Розовый демо-сайт на чистом HTML, CSS и JavaScript:
+        никаких фреймворков и лишней сборки — только блёстки и немного кода.
+      </p>
+      <div class="hero-buttons">
+        <a href="/register" class="btn btn-primary">Создать аккаунт 💖</a>
+        <a href="/login" class="btn btn-outline">Войти</a>
+      </div>
+    </section>
+
+    <section class="features">
+      <article class="card">
+        <div class="badge">👠</div>
+        <h3>Быстрый старт</h3>
+        <p>Каждая страница — отдельный наряд: свой HTML, свои стили CSS и свои скрипты JS.</p>
+      </article>
+      <article class="card">
+        <div class="badge">📱</div>
+        <h3>Адаптивность</h3>
+        <p>Выглядит блестяще на телефоне, планшете и компьютере.</p>
+      </article>
+      <article class="card">
+        <div class="badge">💎</div>
+        <h3>Ничего лишнего</h3>
+        <p>Без тяжёлых библиотек: страницы лёгкие, быстрые и сияют сами по себе.</p>
+      </article>
+    </section>
+  </main>
+
+  <footer class="footer">
+    © <span id="year"></span> БарбиЛенд. Сделано с 💖
+  </footer>
+
+  <script src="/sources/home.js"></script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Вход — БарбиЛенд</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Pacifico&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/login.css">
+  <link rel="stylesheet" href="/static/barbie.css">
+  <script src="/sources/back.js"></script>
+</head>
+<body>
+  <main class="card">
+    <div class="crown" aria-hidden="true">👑</div>
+    <h1>Привет</h1>
+    <p class="subtitle">Войди в свой аккаунт 💖</p>
+
+    {% if error %}
+    <div class="form-error" id="form-error" style="display:block">{{ error }}</div>
+    {% elif notice %}
+    <div class="form-error" id="form-error" style="display:block; background:#ffe0f0; border-color:#ff69b4; color:#b8106f">{{ notice }}</div>
+    {% else %}
+    <div class="form-error" id="form-error"></div>
+    {% endif %}
+
+    <form id="login-form" method="POST" action="/login" novalidate>
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="username" placeholder="you@example.com" autocomplete="email">
+        <div class="error" id="email-error"></div>
+      </div>
+
+      <div class="field">
+        <label for="password">Пароль</label>
+        <input type="password" id="password" name="password" placeholder="Минимум 6 символов" autocomplete="current-password">
+        <div class="error" id="password-error"></div>
+      </div>
+
+      <div class="row">
+        <label class="checkbox">
+          <input type="checkbox" id="show-password"> Показать пароль
+        </label>
+        <a href="#" class="link" id="forgot">Забыла пароль?</a>
+      </div>
+
+      <button type="submit" class="btn" id="submit-btn">Войти ✨</button>
+    </form>
+
+    <p class="hint">
+      Нет аккаунта? <a href="/register" class="link">Зарегистрируйся</a><br>
+      Демо-режим: подойдут любые корректные данные.
+    </p>
+  </main>
+
+  <script src="/sources/login.js"></script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: linear-gradient(135deg, #ffe0f0 0%, #fff0f8 60%);
+  color: #6b0f45;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.card {
+  background: #ffffff;
+  width: 100%;
+  max-width: 420px;
+  border-radius: 16px;
+  padding: 36px 32px;
+  box-shadow: 0 10px 30px rgba(184, 16, 111, 0.1);
+}
+
+.card h1 { font-size: 24px; margin-bottom: 6px; }
+
+.subtitle {
+  color: #a24b7c;
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.field { margin-bottom: 16px; }
+
+.field label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.field input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid #ffa8d5;
+  border-radius: 10px;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.field input:focus {
+  border-color: #e0218a;
+  box-shadow: 0 0 0 3px rgba(224, 33, 138, 0.15);
+}
+
+.field input.invalid { border-color: #e11d48; }
+
+.error {
+  color: #e11d48;
+  font-size: 13px;
+  margin-top: 4px;
+  min-height: 16px;
+}
+
+/* Индикатор надёжности пароля */
+.strength {
+  height: 6px;
+  background: #ffcfe8;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.strength-bar {
+  height: 100%;
+  width: 0;
+  border-radius: 3px;
+  background: #e11d48;
+  transition: width 0.25s, background 0.25s;
+}
+
+.strength-label {
+  font-size: 12px;
+  color: #a24b7c;
+  margin-top: 4px;
+  min-height: 14px;
+}
+
+.btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: #e0218a;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 6px;
+}
+
+.btn:hover { background: #b8106f; }
+.btn:disabled { background: #ff9fcf; cursor: default; }
+
+.link {
+  color: #e0218a;
+  text-decoration: none;
+}
+.link:hover { text-decoration: underline; }
+
+.hint {
+  margin-top: 18px;
+  font-size: 13px;
+  color: #d08ab3;
+  text-align: center;
+}
+
+/* Экран успеха */
+.success {
+  display: none;
+  text-align: center;
+  padding: 12px 0 4px;
+}
+
+.success-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: #dcfce7;
+  color: #16a34a;
+  font-size: 32px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.success h2 { font-size: 20px; margin-bottom: 8px; }
+
+.success p {
+  color: #a24b7c;
+  font-size: 14px;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.success .btn { text-decoration: none; }

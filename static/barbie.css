@@ -1,0 +1,182 @@
+/* ===== БарбиЛенд: общий стиль (подключается после страничных CSS) ===== */
+:root {
+  --pink: #e0218a;
+  --pink-dark: #b8106f;
+  --pink-mid: #ff69b4;
+  --pink-soft: #ffb6dc;
+  --pink-pale: #ffe0f0;
+  --ink: #6b0f45;
+}
+
+body {
+  font-family: "Fredoka", "Segoe UI", Arial, sans-serif;
+  color: var(--ink);
+  background-color: #fff6fb;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255, 105, 180, 0.13) 0 22px, transparent 22px 44px),
+    repeating-linear-gradient(90deg, rgba(255, 105, 180, 0.13) 0 22px, transparent 22px 44px);
+}
+
+h1, h2, h3 { font-weight: 700; color: var(--pink); }
+::selection { background: var(--pink-mid); color: #fff; }
+::placeholder { color: #e7a3c8; }
+input[type="checkbox"] { accent-color: var(--pink); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid var(--pink-dark); outline-offset: 2px; }
+
+/* Кнопки-стикеры */
+.btn, .btn-add {
+  border: 3px solid #fff;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--pink-mid), var(--pink));
+  color: #fff;
+  font-family: inherit;
+  font-weight: 600;
+  text-shadow: 0 1px 0 rgba(184, 16, 111, 0.5);
+  box-shadow: 0 5px 0 var(--pink-dark), 0 10px 20px rgba(224, 33, 138, 0.35);
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.btn:hover, .btn-add:hover, .btn-primary:hover {
+  background: linear-gradient(180deg, #ff82c0, #ea2f95);
+  transform: translateY(-2px);
+  box-shadow: 0 7px 0 var(--pink-dark), 0 12px 22px rgba(224, 33, 138, 0.4);
+}
+.btn:active, .btn-add:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--pink-dark); }
+.btn:disabled, .btn:disabled:hover {
+  background: var(--pink-soft);
+  transform: none;
+  box-shadow: 0 5px 0 #ff9fcf;
+  cursor: default;
+}
+.btn-outline, .btn-outline:hover {
+  background: #fff;
+  color: var(--pink);
+  border: 3px solid var(--pink);
+  text-shadow: none;
+  box-shadow: 0 5px 0 var(--pink-soft);
+}
+.btn-outline:hover { background: var(--pink-pale); transform: translateY(-2px); }
+.success .btn { display: block; text-align: center; }
+
+/* Карточки-наклейки */
+.card, .todo-card, .stat-card {
+  background: #fff;
+  border: 3px solid var(--pink-mid);
+  border-radius: 28px;
+  box-shadow: 7px 7px 0 var(--pink-soft);
+}
+
+/* Поля */
+.field label { color: var(--pink-dark); }
+.field input, .todo-input {
+  border: 3px solid var(--pink-soft);
+  border-radius: 18px;
+  background: #fff;
+  color: var(--ink);
+  font-family: inherit;
+}
+.field input:focus, .todo-input:focus {
+  border-color: var(--pink);
+  box-shadow: 0 0 0 4px rgba(255, 105, 180, 0.3);
+}
+.field input.invalid { border-color: #e11d48; }
+.link { color: var(--pink); font-weight: 600; }
+.form-error { border-radius: 16px; }
+
+/* Шапка */
+.header {
+  background: linear-gradient(90deg, var(--pink-mid), var(--pink));
+  border-bottom: 3px solid #fff;
+  box-shadow: 0 4px 0 var(--pink-soft);
+}
+.logo {
+  font-family: "Pacifico", cursive;
+  font-weight: 400;
+  font-size: 26px;
+  color: #fff;
+  text-shadow: 2px 2px 0 var(--pink-dark);
+}
+.nav a { color: #fff; font-weight: 600; padding: 6px 16px; border-radius: 999px; }
+.nav a:hover, .nav a.active { background: #fff; color: var(--pink); }
+
+/* Заголовки-скрипт */
+.card h1, .page-title, .hero h1, .code {
+  font-family: "Pacifico", cursive;
+  font-weight: 400;
+}
+.card h1 { text-align: center; font-size: 30px; line-height: 1.3; }
+.subtitle { text-align: center; }
+.crown { text-align: center; font-size: 46px; line-height: 1; margin-bottom: 6px; animation: bob 2.6s ease-in-out infinite; }
+@keyframes bob { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-6px) rotate(4deg); } }
+
+/* Главная */
+.ticker {
+  overflow: hidden;
+  white-space: nowrap;
+  background: #fff;
+  color: var(--pink);
+  font-weight: 600;
+  padding: 8px 0;
+  border-bottom: 3px dashed var(--pink-mid);
+}
+.ticker-track { display: inline-block; padding-left: 100%; animation: ticker 32s linear infinite; }
+@keyframes ticker { to { transform: translateX(-100%); } }
+
+.hero-tag {
+  display: inline-block;
+  background: #fff;
+  color: var(--pink);
+  font-weight: 600;
+  border: 3px solid var(--pink-mid);
+  border-radius: 999px;
+  padding: 6px 18px;
+  margin-bottom: 18px;
+  transform: rotate(-2deg);
+  box-shadow: 3px 3px 0 var(--pink-soft);
+}
+.hero h1 { font-size: 48px; line-height: 1.25; color: var(--pink); text-shadow: 3px 3px 0 var(--pink-soft); }
+.hero h1 span { color: var(--pink-dark); }
+.card:hover { transform: translate(-3px, -3px); box-shadow: 10px 10px 0 var(--pink-soft); }
+.stat-card:hover, .todo-card:hover { transform: none; }
+.badge {
+  width: 56px; height: 56px; font-size: 28px;
+  border-radius: 50%;
+  background: var(--pink-pale);
+  border: 3px solid var(--pink-mid);
+}
+.footer { color: var(--pink); font-weight: 600; }
+
+/* Регистрация */
+.strength { height: 8px; border-radius: 999px; }
+.strength-bar { border-radius: 999px; }
+.success-icon { background: var(--pink-pale); border: 3px solid var(--pink-mid); }
+
+/* Кабинет */
+.avatar { background: #fff; color: var(--pink); border: 3px solid var(--pink-soft); }
+.username { color: #fff; }
+.logout { color: #fff; background: rgba(255, 255, 255, 0.22); padding: 6px 14px; border-radius: 999px; font-weight: 600; }
+.logout:hover { background: #fff; color: var(--pink); }
+.page-title { font-size: 32px; color: var(--pink); }
+.stat-value { color: var(--pink); }
+.task { border-bottom: 2px dashed var(--pink-soft); }
+.task.done .task-text { color: #d08ab3; }
+.delete-btn { color: #ffa8d5; }
+.delete-btn:hover { color: #e11d48; background: var(--pink-pale); }
+
+/* 404 */
+.content {
+  background: #fff;
+  border: 3px solid var(--pink-mid);
+  border-radius: 32px;
+  box-shadow: 8px 8px 0 var(--pink-soft);
+  padding: 36px 32px;
+}
+.code { font-size: 120px; color: var(--pink); text-shadow: 4px 4px 0 var(--pink-soft); }
+
+@media (max-width: 600px) {
+  .hero h1 { font-size: 32px; }
+  .code { font-size: 80px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track { animation: none; padding-left: 0; }
+  .crown, .code span { animation: none; }
+}

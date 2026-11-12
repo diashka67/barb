@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Личный кабинет — БарбиЛенд</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Pacifico&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/main.css">
+  <link rel="stylesheet" href="/static/barbie.css">
+  <script src="/sources/back.js"></script>
+</head>
+<body>
+  <header class="header">
+    <div class="logo">💖 БарбиЛенд</div>
+    <div class="user-box">
+      <div class="avatar" id="avatar">{{ username[0]|upper }}</div>
+      <div class="username" id="username">{{ username }}</div>
+      <a href="/logout" class="logout" id="logout">Выйти</a>
+    </div>
+  </header>
+
+  <main class="main">
+    <h1 class="page-title">Мой розовый кабинет</h1>
+    <p class="page-subtitle">Дела сохраняются прямо в твоём браузере.</p>
+
+    <section class="stats">
+      <div class="stat-card">
+        <div class="stat-value" id="stat-total">0</div>
+        <div class="stat-label">Всего дел</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-done">0</div>
+        <div class="stat-label">Готово ✔</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-active">0</div>
+        <div class="stat-label">В процессе</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="clock">--:--:--</div>
+        <div class="stat-label">Сейчас</div>
+      </div>
+    </section>
+
+    <section class="todo-card">
+      <h2>Мои дела 💅</h2>
+
+      <div class="todo-form">
+        <input type="text" class="todo-input" id="todo-input" placeholder="Что сегодня в планах?">
+        <button class="btn-add" id="add-btn" type="button">Добавить</button>
+      </div>
+
+      <ul class="task-list" id="task-list"></ul>
+    </section>
+  </main>
+
+  <script src="/sources/main.js"></script>
+</body>
+</html>
